@@ -1,0 +1,10 @@
+cmake-*
+build
+.vs
+.idea
+
+assets/imgui.ini
+
+deps/.bootstrap.json
+deps/archives/
+deps/src/
