@@ -15,6 +15,7 @@
 #include "types.h"
 #include "gl_shader.h"
 #include "renderer.h"
+#include "assimp_util.h"
 
 
 int main()
@@ -76,6 +77,7 @@ int main()
     for (i32 m = 0; m < scene->mNumMeshes; m++) {
         sws::Mesh &mesh = state.meshes.emplace_back();
         const auto &ai_mesh = scene->mMeshes[m];
+
         for (u32 f = 0; f < ai_mesh->mNumFaces; f++) {
             const auto &ai_face = ai_mesh->mFaces[f];
             assert(ai_face.mNumIndices == 3);
@@ -87,6 +89,21 @@ int main()
             }
         }
     }
+
+    const auto root = scene->mRootNode;
+    for (i32 c = 0; c < root->mNumChildren; c++) {
+        auto &node = state.nodes.emplace_back();
+
+        const auto &child = root->mChildren[c];
+        node.transform = ConvertMatrixToGLMFormat(child->mTransformation);
+        node.mesh_idx = child->mMeshes[0];
+        assert(child->mNumMeshes == 1);
+        assert(node.mesh_idx < 3);
+    }
+
+    assert(state.nodes.size() == state.meshes.size());
+    assert(state.nodes.size() == 3);
+
     aiReleaseImport(scene);
 
     sws::initialize(state);

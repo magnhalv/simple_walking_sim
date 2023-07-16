@@ -22,23 +22,24 @@ void sws::initialize(sws::RenderState &state) {
 
         // Binds the buffer to binding point 0 in the vao
         glVertexArrayVertexBuffer(mesh.vao, 0, mesh.bid, 0, sizeof(glm::vec3));
-        // Enables
+        // Enables vertex attribute 0
         glEnableVertexArrayAttrib(mesh.vao, 0);
         glVertexArrayAttribFormat(mesh.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+        // Makes vertex attribute available in shader layout=0
         glVertexArrayAttribBinding(mesh.vao, 0, 0);
     }
     glBindVertexArray(0);
 }
 void sws::render(const sws::RenderState &state, const f32 ratio) {
 
-
-    const glm::mat4 m = glm::rotate( glm::translate( glm::mat4( 1.0f ), glm::vec3( 0.0f, -0.5f, -20.5f ) ), (f32)glfwGetTime(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
-    const glm::mat4 p = glm::perspective( 45.0f, ratio, 0.1f, 1000.0f );
-
-    sws::PerFrameData perFrameData = { .mvp = p * m, .isWireframe = false };
-
     const GLsizeiptr kBufferSize = sizeof( sws::PerFrameData );
-    for (const auto &mesh: state.meshes) {
+    for (const auto &node: state.nodes) {
+        const glm::mat4 m = glm::rotate( glm::translate( node.transform, glm::vec3( 0.0f, -0.5f, -20.5f ) ), (f32)glfwGetTime(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+        const glm::mat4 p = glm::perspective( 45.0f, ratio, 0.1f, 1000.0f );
+
+        sws::PerFrameData perFrameData = { .mvp = p * m, .isWireframe = false };
+
+        const auto &mesh = state.meshes[node.mesh_idx];
         glNamedBufferSubData( state.per_frame_bid, 0, kBufferSize, &perFrameData );
 
         glBindVertexArray(mesh.vao);

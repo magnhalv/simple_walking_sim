@@ -22,9 +22,16 @@ namespace sws {
         std::vector<glm::vec3> positions;
     };
 
+    struct Node {
+        u32 mesh_idx;
+        glm::mat4 transform;
+    };
+
     struct RenderState {
         GLuint per_frame_bid;
         std::vector<Mesh> meshes;
+        std::vector<Node> nodes;
+
     };
 
     void initialize(RenderState &state);
