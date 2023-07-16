@@ -34,8 +34,8 @@ void sws::render(const sws::RenderState &state, const f32 ratio) {
 
     const GLsizeiptr kBufferSize = sizeof( sws::PerFrameData );
     for (const auto &node: state.nodes) {
-        //const glm::mat4 m = glm::rotate( glm::translate( node.transform, glm::vec3( 0.0f, -0.5f, -20.5f ) ), (f32)glfwGetTime(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
-        const glm::mat4 m = glm::translate( node.transform, glm::vec3( 0.0f, -0.5f, -20.5f ) );
+        const glm::mat4 m = glm::rotate( glm::translate( node.transform, glm::vec3( 0.0f, -0.5f, -20.5f ) ), (f32)glfwGetTime(), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+        //const glm::mat4 m = glm::translate( node.transform, glm::vec3( 0.0f, -0.5f, -20.5f ) );
         const glm::mat4 p = glm::perspective( 45.0f, ratio, 0.1f, 1000.0f );
 
         sws::PerFrameData perFrameData = { .mvp = p * m, .isWireframe = false };
@@ -51,7 +51,7 @@ void sws::render(const sws::RenderState &state, const f32 ratio) {
         glNamedBufferSubData( state.per_frame_bid, 0, kBufferSize, &perFrameData );
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-        glDrawArrays( GL_TRIANGLES, 0, mesh.positions.size() );
+        //glDrawArrays( GL_TRIANGLES, 0, mesh.positions.size() );
     }
 }
 

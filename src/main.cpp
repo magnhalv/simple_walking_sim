@@ -66,12 +66,16 @@ int main()
 
 	glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-    const aiScene* scene = aiImportFile( "basic_scene.glb", aiProcess_Triangulate );
+    const aiScene* scene = aiImportFile( "vehicles.glb", aiProcess_Triangulate );
 
     if ( scene == nullptr || !scene->HasMeshes()) {
         printf("Unable to load basic_scene.glb\n");
         exit(255);
     }
+    else {
+        printf("Scene loaded.\n");
+    }
+
 
     sws::RenderState state;
     for (i32 m = 0; m < scene->mNumMeshes; m++) {
@@ -90,20 +94,29 @@ int main()
         }
     }
 
+    printf("  Meshed loaded.\n");
+
     const auto root = scene->mRootNode;
     for (i32 c = 0; c < root->mNumChildren; c++) {
-        auto &node = state.nodes.emplace_back();
-
         const auto &child = root->mChildren[c];
+
+        if (child->mNumMeshes == 0) {
+            continue;
+        }
+
+        if (child->mNumChildren > 0) {
+            printf("Child with children: %s", child->mName.data);
+        }
+
+        auto &node = state.nodes.emplace_back();
         node.transform = ConvertMatrixToGLMFormat(child->mTransformation);
         node.mesh_idx = child->mMeshes[0];
-        assert(child->mNumMeshes == 1);
-        assert(node.mesh_idx < 3);
     }
 
-    assert(state.nodes.size() == state.meshes.size());
-    assert(state.nodes.size() == 3);
+    //assert(state.nodes.size() == state.meshes.size());
+    //assert(state.nodes.size() == 3);
 
+    printf("Converted from assimp to local representation.\n");
     aiReleaseImport(scene);
 
     sws::initialize(state);
