@@ -85,7 +85,7 @@ int main()
             for (const auto idx: indices) {
                 assert(idx < ai_mesh->mNumVertices);
                 const auto &ai_vec = ai_mesh->mVertices[idx];
-                mesh.positions.emplace_back(ai_vec.x, ai_vec.z, ai_vec.y);
+                mesh.positions.emplace_back(ai_vec.x, ai_vec.y, ai_vec.z);
             }
         }
     }
