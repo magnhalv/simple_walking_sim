@@ -5,9 +5,14 @@ layout(std140, binding = 0) uniform PerFrameData
     uniform int isWireframe;
 };
 layout (location=0) in vec3 pos;
-layout (location=0) out vec3 color;
+layout (location=1) in vec3 norm_in;
+
+out vec3 color;
+out vec3 norm;
+
 void main()
 {
     gl_Position = MVP * vec4(pos, 1.0);
-    color = isWireframe > 0 ? vec3(0.0f) : pos.xyz;
+    color = isWireframe > 0 ? vec3(0.0f) : vec3(1.0, 1.0, 0.94);
+    norm = norm_in;
 }

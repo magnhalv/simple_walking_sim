@@ -4,29 +4,43 @@
 #include "renderer.h"
 #include "GLFW/glfw3.h"
 
-
 void sws::initialize(sws::RenderState &state) {
     const GLsizeiptr kBufferSize = sizeof( sws::PerFrameData );
     glCreateBuffers( 1, &state.per_frame_bid );
     glNamedBufferStorage( state.per_frame_bid, kBufferSize, nullptr, GL_DYNAMIC_STORAGE_BIT );
     glBindBufferRange( GL_UNIFORM_BUFFER, 0, state.per_frame_bid, 0, kBufferSize );
 
+    glCreateBuffers( 1, &state.light_uniform );
+    glm::vec3 light(1.0, 1.0, 1.0);
+    glNamedBufferStorage( state.light_uniform, sizeof(glm::vec3), &light, GL_DYNAMIC_STORAGE_BIT );
+    glBindBufferRange( GL_UNIFORM_BUFFER, 1, state.light_uniform, 0, sizeof(glm::vec3) );
+
     for (auto &mesh : state.meshes ) {
         glCreateVertexArrays(1, &mesh.vao);
 
-        glCreateBuffers(1, &mesh.bid);
+        glCreateBuffers(1, &mesh.position_vbo);
         auto data_size = static_cast<GLsizeiptr>(sizeof(glm::vec3) * mesh.positions.size()); // NOLINT
-
+        assert(mesh.positions.size() == mesh.normals.size());
         // Populates the buffer
-        glNamedBufferStorage(mesh.bid, data_size, mesh.positions.data(), 0);
-
+        glNamedBufferStorage(mesh.position_vbo, data_size, mesh.positions.data(), 0);
         // Binds the buffer to binding point 0 in the vao
-        glVertexArrayVertexBuffer(mesh.vao, 0, mesh.bid, 0, sizeof(glm::vec3));
+        glVertexArrayVertexBuffer(mesh.vao, 0, mesh.position_vbo, 0, sizeof(glm::vec3));
         // Enables vertex attribute 0
         glEnableVertexArrayAttrib(mesh.vao, 0);
         glVertexArrayAttribFormat(mesh.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
         // Makes vertex attribute available in shader layout=0
         glVertexArrayAttribBinding(mesh.vao, 0, 0);
+
+        glCreateBuffers(1, &mesh.normals_vbo);
+        // Populates the buffer
+        glNamedBufferStorage(mesh.normals_vbo, data_size, mesh.normals.data(), 0);
+        // Binds the buffer to binding point 1 in the vao
+        glVertexArrayVertexBuffer(mesh.vao, 1, mesh.normals_vbo, 0, sizeof(glm::vec3));
+        // Enables vertex attribute 1
+        glEnableVertexArrayAttrib(mesh.vao, 1);
+        glVertexArrayAttribFormat(mesh.vao, 1, 3, GL_FLOAT, GL_FALSE, 0);
+        // Makes vertex attribute available in shader layout=1
+        glVertexArrayAttribBinding(mesh.vao, 1, 1);
     }
     glBindVertexArray(0);
 }
@@ -57,6 +71,6 @@ void sws::render(const sws::RenderState &state, const f32 ratio) {
 
 void free(std::vector<sws::Mesh> &meshes) {
     for (auto &mesh : meshes ) {
-        glDeleteBuffers(1, &mesh.bid);
+        glDeleteBuffers(1, &mesh.position_vbo);
     }
 }

@@ -56,7 +56,7 @@ int main()
 
 
     GLShader vertex_shader("./shaders/mesh.vert");
-    GLShader frag_shader("./shaders/basic.frag");
+    GLShader frag_shader("./shaders/basic_light.frag");
     GLProgram shader_program(vertex_shader, frag_shader);
 	shader_program.useProgram();
 
@@ -90,6 +90,9 @@ int main()
                 assert(idx < ai_mesh->mNumVertices);
                 const auto &ai_vec = ai_mesh->mVertices[idx];
                 mesh.positions.emplace_back(ai_vec.x, ai_vec.y, ai_vec.z);
+
+                const auto &ai_norm = ai_mesh->mNormals[idx];
+                mesh.normals.emplace_back(ai_norm.x, ai_norm.y, ai_norm.z);
             }
         }
     }
@@ -129,6 +132,7 @@ int main()
 
         glViewport( 0, 0, width, height );
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+        glEnable(GL_DEPTH_TEST);
 
         shader_program.useProgram();
         sws::render(state, ratio);

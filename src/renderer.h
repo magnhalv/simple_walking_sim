@@ -18,8 +18,10 @@ namespace sws {
 
     struct Mesh {
         GLuint vao;
-        GLuint bid;
+        GLuint position_vbo;
+        GLuint normals_vbo;
         std::vector<glm::vec3> positions;
+        std::vector<glm::vec3> normals;
     };
 
     struct Node {
@@ -29,6 +31,7 @@ namespace sws {
 
     struct RenderState {
         GLuint per_frame_bid;
+        GLuint light_uniform;
         std::vector<Mesh> meshes;
         std::vector<Node> nodes;
 
