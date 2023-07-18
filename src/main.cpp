@@ -18,48 +18,46 @@
 #include "assimp_util.h"
 #include "camera.h"
 
-Camera camera;
+Camera camera{-251.0f, 0.3f, glm::vec3(0.0f, 1.0f, -20.0f)};
 
-
-void mouse_callback(GLFWwindow* window, double x_pos, double y_pos) {
-    camera.update(static_cast<float>(x_pos), static_cast<float>(y_pos));
+void mouse_callback(GLFWwindow *window, double x_pos, double y_pos) {
+    camera.update_cursor(static_cast<float>(x_pos), static_cast<float>(y_pos));
 }
 
-int main()
-{
-	glfwSetErrorCallback(
-		[]( int error, const char* description )
-		{
-			fprintf( stderr, "Error: %s\n", description );
-		}
-	);
+int main() {
+    glfwSetErrorCallback(
+            [](int error, const char *description) {
+                fprintf(stderr, "Error: %s\n", description);
+            }
+    );
 
-	if ( !glfwInit() )
-		exit( EXIT_FAILURE );
+    if (!glfwInit())
+        exit(EXIT_FAILURE);
 
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 4 );
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 6 );
-	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow( 1024, 768, "Simple example", nullptr, nullptr );
-	if ( !window )
-	{
-		glfwTerminate();
-		exit( EXIT_FAILURE );
-	}
+    GLFWwindow *window = glfwCreateWindow(1024, 768, "Simple example", nullptr, nullptr);
+    if (!window) {
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
 
-	glfwSetKeyCallback(
-		window,
-		[]( GLFWwindow* window, int key, int scancode, int action, int mods )
-		{
-			if ( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
-				glfwSetWindowShouldClose( window, GLFW_TRUE );
-		}
-	);
+    glfwSetKeyCallback(
+            window,
+            [](GLFWwindow *window, int key, int scancode, int action, int mods) {
+                if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+                    glfwSetWindowShouldClose(window, GLFW_TRUE);
+                } else {
+                    camera.update_keyboard(key, action);
+                }
+            }
+    );
 
-	glfwMakeContextCurrent( window );
-	gladLoadGL( glfwGetProcAddress );
-	glfwSwapInterval( 1 );
+    glfwMakeContextCurrent(window);
+    gladLoadGL(glfwGetProcAddress);
+    glfwSwapInterval(1);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -68,21 +66,20 @@ int main()
     GLShader vertex_shader("./shaders/mesh.vert");
     GLShader frag_shader("./shaders/basic_light.frag");
     GLProgram shader_program(vertex_shader, frag_shader);
-	shader_program.useProgram();
+    shader_program.useProgram();
 
-	GLuint vao;
-	glCreateVertexArrays( 1, &vao );
-	glBindVertexArray( vao );
+    GLuint vao;
+    glCreateVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 
-	glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-    const aiScene* scene = aiImportFile( "vehicles.glb", aiProcess_Triangulate );
+    const aiScene *scene = aiImportFile("vehicles.glb", aiProcess_Triangulate);
 
-    if ( scene == nullptr || !scene->HasMeshes()) {
+    if (scene == nullptr || !scene->HasMeshes()) {
         printf("Unable to load basic_scene.glb\n");
         exit(255);
-    }
-    else {
+    } else {
         printf("Scene loaded.\n");
     }
 
@@ -95,7 +92,7 @@ int main()
         for (u32 f = 0; f < ai_mesh->mNumFaces; f++) {
             const auto &ai_face = ai_mesh->mFaces[f];
             assert(ai_face.mNumIndices == 3);
-            const u32 indices[3] = { ai_face.mIndices[0], ai_face.mIndices[1], ai_face.mIndices[2]};
+            const u32 indices[3] = {ai_face.mIndices[0], ai_face.mIndices[1], ai_face.mIndices[2]};
             for (const auto idx: indices) {
                 assert(idx < ai_mesh->mNumVertices);
                 const auto &ai_vec = ai_mesh->mVertices[idx];
@@ -134,27 +131,26 @@ int main()
 
     sws::initialize(state);
 
-	while ( !glfwWindowShouldClose( window ) )
-	{
+    while (!glfwWindowShouldClose(window)) {
         int width, height;
-        glfwGetFramebufferSize( window, &width, &height );
+        glfwGetFramebufferSize(window, &width, &height);
         const f32 ratio = static_cast<f32>(width) / static_cast<f32>(height);
 
-        glViewport( 0, 0, width, height );
-        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+        glViewport(0, 0, width, height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
 
         shader_program.useProgram();
         sws::render(state, camera.get_view(), ratio);
 
-        glfwSwapBuffers( window );
+        glfwSwapBuffers(window);
         glfwPollEvents();
-	}
+    }
 
-	glDeleteVertexArrays( 1, &vao );
+    glDeleteVertexArrays(1, &vao);
 
-	glfwDestroyWindow( window );
-	glfwTerminate();
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
-	return 0;
+    return 0;
 }
