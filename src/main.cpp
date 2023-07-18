@@ -16,7 +16,14 @@
 #include "gl_shader.h"
 #include "renderer.h"
 #include "assimp_util.h"
+#include "camera.h"
 
+Camera camera;
+
+
+void mouse_callback(GLFWwindow* window, double x_pos, double y_pos) {
+    camera.update(static_cast<float>(x_pos), static_cast<float>(y_pos));
+}
 
 int main()
 {
@@ -53,6 +60,9 @@ int main()
 	glfwMakeContextCurrent( window );
 	gladLoadGL( glfwGetProcAddress );
 	glfwSwapInterval( 1 );
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
 
     GLShader vertex_shader("./shaders/mesh.vert");
@@ -135,7 +145,7 @@ int main()
         glEnable(GL_DEPTH_TEST);
 
         shader_program.useProgram();
-        sws::render(state, ratio);
+        sws::render(state, camera.get_view(), ratio);
 
         glfwSwapBuffers( window );
         glfwPollEvents();

@@ -38,6 +38,6 @@ namespace sws {
     };
 
     void initialize(RenderState &state);
-    void render(const sws::RenderState &state, const f32 ratio);
+    void render(const sws::RenderState &state, const glm::mat4 &view, const f32 ratio);
 }
 
