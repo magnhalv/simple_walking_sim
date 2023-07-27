@@ -92,6 +92,8 @@ include_directories(deps/src/ImGuizmo/src)
 add_subdirectory(deps/cmake/bullet)
 add_subdirectory(deps/cmake/ImGuizmo)
 
+# GLAD
+include_directories(deps/glad/include)
 set(GLAD_SOURCES deps/glad/src/gl.c deps/glad/src/vulkan.c)
 if(WIN32)
 	set(GLAD_SOURCES ${GLAD_SOURCES} deps/glad/src/wgl.c)
@@ -117,6 +119,7 @@ add_executable(SimpleWalkingSim ${CMAKE_SOURCE_DIR}/src/main.cpp
 		${CMAKE_SOURCE_DIR}/src/utils.cpp
 		${CMAKE_SOURCE_DIR}/src/gl_shader.cpp
 		${CMAKE_SOURCE_DIR}/src/renderer.cpp
+		${GLAD_SOURCES}
 		)
 
 target_include_directories(SimpleWalkingSim PRIVATE
@@ -126,7 +129,6 @@ target_include_directories(SimpleWalkingSim PRIVATE
 target_link_libraries(SimpleWalkingSim
 		assimp
 		opengl32
-		glad glfw
 		)
 # TODO: Find a way to detect windows
 set_property(TARGET SimpleWalkingSim PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/")
