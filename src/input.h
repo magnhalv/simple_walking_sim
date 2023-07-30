@@ -3,15 +3,17 @@
 #include "types.h"
 
 struct ButtonState {
+    ButtonState(): half_transition_count(0), ended_down(false) {}
+
     i32 half_transition_count; // How many times it flipped between up and down
     bool ended_down;
 };
 
 struct MouseInput {
-    i32 x;
-    i32 y;
-    i32 dx;
-    i32 dy;
+    i32 x = 0;
+    i32 y = 0;
+    i32 dx = 0;
+    i32 dy = 0;
     ButtonState buttons[2];
 };
 
@@ -32,26 +34,18 @@ struct Input {
             ButtonState terminator;
         };
     };
-    f32 dt;
+    f32 dt{};
 
-    void frame_clear() {
-        mouse.x = 0;
-        mouse.y = 0;
+    void frame_clear(const Input &prev_frame_input) {
+        //mouse.x = prev_frame_input.mouse.x;
+        //mouse.y = prev_frame_input.mouse.y;
         mouse.dx = 0;
         mouse.dy = 0;
-        for (auto &button: mouse.buttons) {
-            button.half_transition_count = 0;
-            button.ended_down = false;
+
+        for (auto i = 0; i < 5; i++) {
+            buttons[i].half_transition_count = 0;
+            buttons[i].ended_down = prev_frame_input.buttons[i].ended_down;
         }
-
-        for (auto &button : buttons) {
-            button.half_transition_count = 0;
-            button.ended_down = false;
-        }
-    }
-
-    void process_keyboard_input(int key, int action) {
-
     }
 };
 

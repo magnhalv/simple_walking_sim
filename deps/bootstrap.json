@@ -8,14 +8,6 @@
     }
   },
   {
-    "name": "glfw",
-    "source": {
-      "type": "git",
-      "url": "https://github.com/glfw/glfw.git",
-      "revision": "3.3.4"
-    }
-  },
-  {
     "name": "glm",
     "source": {
       "type": "git",
@@ -119,13 +111,6 @@
     }
   },
   {
-    "name": "glTF-Sample-Models",
-    "source": {
-      "type": "git",
-      "url": "https://github.com/KhronosGroup/glTF-Sample-Models.git"
-    }
-  },
-  {
     "name": "gli",
     "source": {
       "type": "git",
@@ -155,75 +140,6 @@
       "type": "git",
       "url": "https://github.com/CedricGuillemet/ImGuizmo",
       "revision": "3a676c4efcab65817658d34eebb56cb91663d5ed"
-    }
-  },
-  {
-    "name": "bistro/PropTextures",
-    "source": {
-      "type": "archive",
-      "url": "https://casual-effects.com/g3d/data10/research/model/bistro/PropTextures",
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36"
-    }
-  },
-  {
-    "name": "bistro/OtherTextures",
-    "source": {
-      "type": "archive",
-      "url": "https://casual-effects.com/g3d/data10/research/model/bistro/OtherTextures",
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36"
-    }
-  },
-  {
-    "name": "bistro/BuildingTextures",
-    "source": {
-      "type": "archive",
-      "url": "https://casual-effects.com/g3d/data10/research/model/bistro/BuildingTextures",
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36"
-    }
-  },
-  {
-    "name": "bistro/Interior",
-    "source": {
-      "type": "archive",
-      "url": "https://casual-effects.com/g3d/data10/research/model/bistro/Interior.zip",
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36"
-    }
-  },
-  {
-    "name": "bistro/Exterior",
-    "source": {
-      "type": "archive",
-      "url": "https://casual-effects.com/g3d/data10/research/model/bistro/Exterior.zip",
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36"
-    }
-  },
-  {
-    "name": "explosion0",
-    "source": {
-      "type": "archive",
-      "url": "https://unity3d.com/files/labs/downloads/vfx/assets01/Explosion00/Explosion00-sequence-tga.zip"
-    }
-  },
-  {
-    "name": "explosion1",
-    "source": {
-      "type": "archive",
-      "url": "https://unity3d.com/files/labs/downloads/vfx/assets01/Explosion01/Explosion01-sequence-tga.zip"
-    }
-  },
-  {
-    "name": "explosion2",
-    "source": {
-      "type": "archive",
-      "url": "https://unity3d.com/files/labs/downloads/vfx/assets01/Explosion02/Explosion02-sequence-tga.zip"
-    }
-  },
-  {
-    "name": "sdl",
-    "source": {
-      "type": "git",
-      "url": "https://github.com/libsdl-org/sdl.git",
-      "revision": "release-2.28.1"
     }
   }
 ]

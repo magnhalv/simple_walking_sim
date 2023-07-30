@@ -58,13 +58,13 @@ void sws::render(const sws::RenderState &state, const glm::mat4 &view, const f32
 
         glBindVertexArray(mesh.vao);
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        //glDrawArrays( GL_TRIANGLES, 0, mesh.positions.size() );
+        glDrawArrays( GL_TRIANGLES, 0, mesh.positions.size() );
 
         perFrameData.isWireframe = true;
         glNamedBufferSubData( state.per_frame_bid, 0, kBufferSize, &perFrameData );
 
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-        glDrawArrays( GL_TRIANGLES, 0, mesh.positions.size() );
+        //glDrawArrays( GL_TRIANGLES, 0, mesh.positions.size() );
     }
 }
 

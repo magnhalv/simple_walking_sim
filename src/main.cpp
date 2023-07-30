@@ -225,10 +225,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
     sws::initialize(state);
 
-    Input inputs[2];
-    u32 curr_input = 0;
-    auto &current_input = inputs[curr_input];
-    auto &previous_input = inputs[curr_input + 1];
+    Input inputs[2] = {};
+    u32 curr_input_idx = 0;
+    auto *current_input = &inputs[curr_input_idx];
+    auto *previous_input = &inputs[curr_input_idx + 1];
 
     while (is_running) {
         int width, height;
@@ -245,10 +245,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         shader_program.useProgram();
 
 
-        win32_process_pending_messages(current_input, previous_input);
+        win32_process_pending_messages(*current_input, *previous_input);
+        camera.update_cursor(static_cast<f32>(current_input->mouse.dx), static_cast<f32>(current_input->mouse.dy));
+        camera.update_keyboard(*current_input);
 
         glViewport(0, 0, width, height);
-        glClearColor(0.3f, 0.1f, 0.1f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
         sws::render(state, camera.get_view(), ratio);
@@ -263,6 +265,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         {
             printf("OpenGL Error %d\n", err);
         }
+
+        curr_input_idx = curr_input_idx == 0 ? 1 : 0;
+        current_input = &inputs[curr_input_idx];
+        previous_input = &inputs[curr_input_idx == 0 ? 1 : 0];
+        current_input->frame_clear(*previous_input);
     }
 
     glDeleteVertexArrays(1, &vao);
@@ -307,6 +314,11 @@ void win32_process_keyboard_message(ButtonState &new_state, bool is_down) {
 }
 
 void win32_process_pending_messages(Input &new_input, Input &old_input) {
+    // Use these variables in case the mouse updates several times during a frame
+    // so we can calculate dx and dy correctly.
+    i32 mouse_x = old_input.mouse.x;
+    i32 mouse_y = old_input.mouse.y;
+
     MSG message;
     while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
         switch (message.message) {
@@ -325,21 +337,8 @@ void win32_process_pending_messages(Input &new_input, Input &old_input) {
             }
                 break;
             case WM_MOUSEMOVE: {
-                i32 xPos = GET_X_LPARAM(message.lParam);
-                i32 yPos = GET_Y_LPARAM(message.lParam);
-
-                camera.update_cursor(xPos, yPos);
-                //new_input.mouse_x = xPos;
-                //new_input.mouse_y = yPos;
-
-                //if (!old_input.mouse_has_entered) {
-//                    new_input.mouse_has_entered = true;
-//                    old_input.mouse_x = xPos;
-//                    old_input.mouse_y = yPos;
-//                }
-
-                //new_input.mouse_dx = new_input.mouse_x - old_input.mouse_x;
-                //new_input.mouse_dy = new_input.mouse_y - old_input.mouse_y;
+                mouse_x = GET_X_LPARAM(message.lParam);
+                mouse_y = GET_Y_LPARAM(message.lParam);
             }
                 break;
             case WM_SYSKEYDOWN:
@@ -384,4 +383,9 @@ void win32_process_pending_messages(Input &new_input, Input &old_input) {
                 DispatchMessageA(&message);
         }
     }
+
+    new_input.mouse.x = mouse_x;
+    new_input.mouse.y = mouse_y;
+    new_input.mouse.dx = new_input.mouse.x - old_input.mouse.x;
+    new_input.mouse.dy = new_input.mouse.y - old_input.mouse.y;
 }
