@@ -10,10 +10,10 @@ void sws::initialize(sws::RenderState &state) {
     glNamedBufferStorage( state.per_frame_bid, kBufferSize, nullptr, GL_DYNAMIC_STORAGE_BIT );
     glBindBufferRange( GL_UNIFORM_BUFFER, 0, state.per_frame_bid, 0, kBufferSize );
 
+    const GLsizeiptr light_buffer_size = sizeof( sws::LightData );
     glCreateBuffers( 1, &state.light_uniform );
-    glm::vec3 light(1.0, 1.0, 1.0);
-    glNamedBufferStorage( state.light_uniform, sizeof(glm::vec3), &light, GL_DYNAMIC_STORAGE_BIT );
-    glBindBufferRange( GL_UNIFORM_BUFFER, 1, state.light_uniform, 0, sizeof(glm::vec3) );
+    glNamedBufferStorage( state.light_uniform, light_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT );
+    glBindBufferRange( GL_UNIFORM_BUFFER, 1, state.light_uniform, 0, light_buffer_size );
 
     for (auto &mesh : state.meshes ) {
         glCreateVertexArrays(1, &mesh.vao);
@@ -44,7 +44,7 @@ void sws::initialize(sws::RenderState &state) {
     }
     glBindVertexArray(0);
 }
-void sws::render(const sws::RenderState &state, const glm::mat4 &view, const f32 ratio) {
+void sws::render(const sws::RenderState &state, const glm::mat4 &view, const f32 ratio, const Camera &camera) {
     const GLsizeiptr kBufferSize = sizeof( sws::PerFrameData );
     for (const auto &node: state.nodes) {
         const glm::mat4 m = view * node.transform;
@@ -52,6 +52,8 @@ void sws::render(const sws::RenderState &state, const glm::mat4 &view, const f32
         const glm::mat4 p = glm::perspective( 45.0f, ratio, 0.1f, 1000.0f );
 
         sws::PerFrameData perFrameData = { .mvp = p * m, .isWireframe = false };
+        sws::LightData light_data = { .omni_pos = glm::vec3(0, 5, -10), .eye_pos = camera.get_direction() };
+        glNamedBufferSubData( state.light_uniform, 0, sizeof(sws::LightData), &light_data );
 
         const auto &mesh = state.meshes[node.mesh_idx];
         glNamedBufferSubData( state.per_frame_bid, 0, kBufferSize, &perFrameData );

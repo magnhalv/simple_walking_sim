@@ -57,6 +57,10 @@ public:
     glm::mat4 get_view() {
         return glm::lookAt(position, position + direction, up);
     }
+
+    [[nodiscard]] auto get_direction() const -> glm::vec3 {
+        return position;
+    }
 private:
     f32 yaw;
     f32 pitch;

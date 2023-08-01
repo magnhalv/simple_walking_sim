@@ -30,7 +30,7 @@ typedef BOOL(WINAPI *PFNWGLSWAPINTERVALEXTPROC)(int);
 typedef int(WINAPI *PFNWGLGETSWAPINTERVALEXTPROC)(void);
 
 
-Camera camera{-251.0f, 0.3f, glm::vec3(0.0f, 1.0f, -20.0f)};
+Camera camera{-251.0f, 0.3f, glm::vec3(0.0f, 1.0f, -10.0f)};
 
 bool is_running = true;
 
@@ -38,7 +38,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, PSTR, int);
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-void win32_process_pending_messages(Input &new_input, Input &old_input);
+void win32_process_pending_messages(Input &new_input, Input &old_input, HWND hwnd);
 
 #if _DEBUG
 #pragma comment(linker, "/subsystem:console")
@@ -155,17 +155,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
 
-
     GLShader vertex_shader("./shaders/mesh.vert");
-    GLShader frag_shader("./shaders/basic_light.frag");
+    GLShader frag_shader("./shaders/phong.frag");
     GLProgram shader_program(vertex_shader, frag_shader);
     shader_program.useProgram();
 
     GLuint vao;
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
-
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     const aiScene *scene = aiImportFile("vehicles.glb", aiProcess_Triangulate);
 
@@ -238,22 +235,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         width = clientRect.right - clientRect.left;
         const f32 ratio = static_cast<f32>(width) / static_cast<f32>(height);
 
-        glViewport(0, 0, width, height);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
-
-        shader_program.useProgram();
 
 
-        win32_process_pending_messages(*current_input, *previous_input);
+        win32_process_pending_messages(*current_input, *previous_input, hwnd);
         camera.update_cursor(static_cast<f32>(current_input->mouse.dx), static_cast<f32>(current_input->mouse.dy));
         camera.update_keyboard(*current_input);
 
+        shader_program.useProgram();
         glViewport(0, 0, width, height);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        sws::render(state, camera.get_view(), ratio);
+        sws::render(state, camera.get_view(), ratio, camera);
 
         SwapBuffers(hdc);
         if (vsynch != 0) {
@@ -313,14 +306,16 @@ void win32_process_keyboard_message(ButtonState &new_state, bool is_down) {
     }
 }
 
-void win32_process_pending_messages(Input &new_input, Input &old_input) {
+// TODO: Use raw input to handle mouse movement instead
+// See: https://learn.microsoft.com/en-us/windows/win32/inputdev/raw-input?redirectedfrom=MSDN
+void win32_process_pending_messages(Input &new_input, Input &old_input, HWND hwnd) {
     // Use these variables in case the mouse updates several times during a frame
     // so we can calculate dx and dy correctly.
     i32 mouse_x = old_input.mouse.x;
     i32 mouse_y = old_input.mouse.y;
 
     MSG message;
-    while (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
+    while (PeekMessage(&message, hwnd, 0, 0, PM_REMOVE)) {
         switch (message.message) {
             case WM_QUIT: {
                 is_running = false;
@@ -337,6 +332,7 @@ void win32_process_pending_messages(Input &new_input, Input &old_input) {
             }
                 break;
             case WM_MOUSEMOVE: {
+                printf("Mouse move\n");
                 mouse_x = GET_X_LPARAM(message.lParam);
                 mouse_y = GET_Y_LPARAM(message.lParam);
             }
@@ -386,6 +382,12 @@ void win32_process_pending_messages(Input &new_input, Input &old_input) {
 
     new_input.mouse.x = mouse_x;
     new_input.mouse.y = mouse_y;
-    new_input.mouse.dx = new_input.mouse.x - old_input.mouse.x;
-    new_input.mouse.dy = new_input.mouse.y - old_input.mouse.y;
+    if (old_input.mouse.x == 0 && old_input.mouse.y == 0) {
+        new_input.mouse.dx = 0;
+        new_input.mouse.dy = 0;
+    }
+    else {
+        new_input.mouse.dx = new_input.mouse.x - old_input.mouse.x;
+        new_input.mouse.dy = new_input.mouse.y - old_input.mouse.y;
+    }
 }
