@@ -155,6 +155,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
 
+    RAWINPUTDEVICE mouse;
+
+    mouse.usUsagePage = 0x01;          // HID_USAGE_PAGE_GENERIC
+    mouse.usUsage = 0x02;              // HID_USAGE_GENERIC_MOUSE
+    mouse.dwFlags = RIDEV_NOLEGACY;    // adds mouse and also ignores legacy mouse messages
+    mouse.hwndTarget = hwnd;
+
+    if (RegisterRawInputDevices(&mouse, 1, sizeof(mouse)) == FALSE) {
+        exit(1);
+    }
+
+
     GLShader vertex_shader("./shaders/mesh.vert");
     GLShader frag_shader("./shaders/phong.frag");
     GLProgram shader_program(vertex_shader, frag_shader);
@@ -227,10 +239,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     auto *current_input = &inputs[curr_input_idx];
     auto *previous_input = &inputs[curr_input_idx + 1];
 
+
     while (is_running) {
         int width, height;
         RECT clientRect;
+        RECT window_rect;
         GetClientRect(hwnd, &clientRect);
+        GetWindowRect(hwnd, &window_rect);
+
+        ClipCursor(&window_rect);
+
+
         height = clientRect.bottom - clientRect.top;
         width = clientRect.right - clientRect.left;
         const f32 ratio = static_cast<f32>(width) / static_cast<f32>(height);
@@ -313,6 +332,8 @@ void win32_process_pending_messages(Input &new_input, Input &old_input, HWND hwn
     // so we can calculate dx and dy correctly.
     i32 mouse_x = old_input.mouse.x;
     i32 mouse_y = old_input.mouse.y;
+    new_input.mouse.dx = 0;
+    new_input.mouse.dy = 0;
 
     MSG message;
     while (PeekMessage(&message, hwnd, 0, 0, PM_REMOVE)) {
@@ -321,6 +342,37 @@ void win32_process_pending_messages(Input &new_input, Input &old_input, HWND hwn
                 is_running = false;
             }
                 break;
+            case WM_INPUT: {
+                UINT dwSize;
+
+                GetRawInputData((HRAWINPUT)message.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+                auto lpb = new BYTE[dwSize];
+                if (lpb == NULL)
+                {
+                    printf("Error in windows mouse handling\n");
+                    continue;
+                }
+
+                if (GetRawInputData((HRAWINPUT)message.lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) != dwSize)
+                {
+                    // Error: couldn't get raw input data
+                }
+
+                auto* raw = (RAWINPUT*)lpb;
+
+                if (raw->header.dwType == RIM_TYPEMOUSE)
+                {
+                    int xPosRelative = raw->data.mouse.lLastX;
+                    int yPosRelative = raw->data.mouse.lLastY;
+                    printf("%d %d\n", xPosRelative, yPosRelative);
+                    new_input.mouse.dx = xPosRelative;
+                    new_input.mouse.dy = yPosRelative;
+                    // Process the mouse movements...
+                }
+
+                delete[] lpb;
+            }
+            break;
             case WM_LBUTTONDOWN: {
                 // new_input.left_mouse = true;
                 //input_add_event(new_input, InputEvent::LeftClick);
@@ -380,7 +432,7 @@ void win32_process_pending_messages(Input &new_input, Input &old_input, HWND hwn
         }
     }
 
-    new_input.mouse.x = mouse_x;
+    /*new_input.mouse.x = mouse_x;
     new_input.mouse.y = mouse_y;
     if (old_input.mouse.x == 0 && old_input.mouse.y == 0) {
         new_input.mouse.dx = 0;
@@ -389,5 +441,5 @@ void win32_process_pending_messages(Input &new_input, Input &old_input, HWND hwn
     else {
         new_input.mouse.dx = new_input.mouse.x - old_input.mouse.x;
         new_input.mouse.dy = new_input.mouse.y - old_input.mouse.y;
-    }
+    } */
 }

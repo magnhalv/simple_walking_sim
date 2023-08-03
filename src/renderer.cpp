@@ -52,7 +52,7 @@ void sws::render(const sws::RenderState &state, const glm::mat4 &view, const f32
         const glm::mat4 p = glm::perspective( 45.0f, ratio, 0.1f, 1000.0f );
 
         sws::PerFrameData perFrameData = { .mvp = p * m, .isWireframe = false };
-        sws::LightData light_data = { .omni_pos = glm::vec3(0, 5, -10), .eye_pos = camera.get_direction() };
+        sws::LightData light_data = { .omni_pos = glm::vec3(0.0f, 1.0f, -10.0f), .eye_pos = camera.get_position() };
         glNamedBufferSubData( state.light_uniform, 0, sizeof(sws::LightData), &light_data );
 
         const auto &mesh = state.meshes[node.mesh_idx];

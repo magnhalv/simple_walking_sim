@@ -58,13 +58,13 @@ public:
         return glm::lookAt(position, position + direction, up);
     }
 
-    [[nodiscard]] auto get_direction() const -> glm::vec3 {
+    [[nodiscard]] auto get_position() const -> glm::vec3 {
         return position;
     }
 private:
     f32 yaw;
     f32 pitch;
-    glm::vec3 position{0.0f, -0.5f, -20.5f};
+    glm::vec3 position{0.0f, 1.0f, -10.0f};
     glm::vec3 direction{0.0f, 0.0f, 0.0f};
     const glm::vec3 up{0, 1, 0};
 };
