@@ -1,6 +1,9 @@
 #pragma once
 
 #include <glad/gl.h>
+#include <glm/glm.hpp>
+
+#include "types.h"
 
 class GLShader
 {
@@ -19,17 +22,19 @@ private:
 class GLProgram
 {
 public:
-    explicit GLProgram(const GLShader& a);
-    GLProgram(const GLShader& a, const GLShader& b);
-    GLProgram(const GLShader& a, const GLShader& b, const GLShader& c);
-    GLProgram(const GLShader& a, const GLShader& b, const GLShader& c, const GLShader& d, const GLShader& e);
+    void initialize(const GLShader& a);
+    void initialize(const GLShader& a, const GLShader& b);
+    void initialize(const GLShader& a, const GLShader& b, const GLShader& c);
+    void initialize(const GLShader& a, const GLShader& b, const GLShader& c, const GLShader& d, const GLShader& e);
     ~GLProgram();
 
     void useProgram() const;
     [[nodiscard]] GLuint getHandle() const { return handle_; }
 
+    void set_uniform(const char *name, const glm::vec4 &vec) const;
+
 private:
-    GLuint handle_;
+    GLuint handle_ = 0;
 };
 
 GLenum GLShaderTypeFromFileName(const char* file_name);

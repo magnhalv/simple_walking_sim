@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <chrono>
 
 #include <glad/gl.h>
 #include <glad/wgl.h>
@@ -30,7 +31,7 @@ typedef BOOL(WINAPI *PFNWGLSWAPINTERVALEXTPROC)(int);
 typedef int(WINAPI *PFNWGLGETSWAPINTERVALEXTPROC)(void);
 
 
-Camera camera{-251.0f, 0.3f, glm::vec3(0.0f, 1.0f, -10.0f)};
+Camera camera{-90.0f, 0.0f, glm::vec3(0.0f, 1.0f, 10.0f)};
 
 bool is_running = true;
 
@@ -166,17 +167,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         exit(1);
     }
 
-
-    GLShader vertex_shader("./shaders/mesh.vert");
-    GLShader frag_shader("./shaders/phong.frag");
-    GLProgram shader_program(vertex_shader, frag_shader);
-    shader_program.useProgram();
-
     GLuint vao;
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    const aiScene *scene = aiImportFile("vehicles.glb", aiProcess_Triangulate);
+    const aiScene *scene = aiImportFile("barrel.obj", aiProcess_Triangulate);
 
     if (scene == nullptr || !scene->HasMeshes()) {
         printf("Unable to load basic_scene.glb\n");
@@ -206,9 +201,37 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         }
     }
 
-    printf("  Meshed loaded.\n");
+    for (i32 i = 0; i < scene->mNumMaterials; i++) {
+        aiMaterial* ai_material = scene->mMaterials[i];
+        aiColor3D diffuse_color (0.f, 0.f, 0.f);
+        ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color);
+        aiColor3D specular_color (0.f, 0.f, 0.f);
+        ai_material->Get(AI_MATKEY_COLOR_SPECULAR, specular_color);
+        aiString name;
+        ai_material->Get(AI_MATKEY_NAME, name);
 
+        printf("%s\n", name.data);
+        printf("%f %f %f\n", diffuse_color.r, diffuse_color.g, diffuse_color.b);
+
+        auto &material = state.materials.emplace_back();
+        strncpy(material.name, name.data, sws::MAX_LENGTH);
+        material.diffuse_color = glm::vec4(pow(diffuse_color.r, 1 / 2.2), pow(diffuse_color.g, 1 / 2.2), pow(diffuse_color.b, 1 / 2.2), 1.0);
+
+    }
+
+    printf("  Meshes loaded: %d\n", state.meshes.size());
+
+    // TODO: Make a proper scene graph
     const auto root = scene->mRootNode;
+    if (root->mNumMeshes > 0) {
+        for (auto i = 0; i < root->mNumMeshes; i++) {
+            auto &node = state.nodes.emplace_back();
+            node.transform = ConvertMatrixToGLMFormat(root->mTransformation);
+            node.mesh_idx = root->mMeshes[i];
+            node.material_idx = scene->mMeshes[node.mesh_idx]->mMaterialIndex;
+        }
+
+    }
     for (i32 c = 0; c < root->mNumChildren; c++) {
         const auto &child = root->mChildren[c];
 
@@ -240,6 +263,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     auto *previous_input = &inputs[curr_input_idx + 1];
 
 
+    //xglEnable(GL_MULTISAMPLE);
+    //int samples = 4;
+    //glSampleCoverage(samples, GL_FALSE);
+    auto end_last_frame = std::chrono::high_resolution_clock::now();
+    //auto
     while (is_running) {
         int width, height;
         RECT clientRect;
@@ -260,12 +288,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         camera.update_cursor(static_cast<f32>(current_input->mouse.dx), static_cast<f32>(current_input->mouse.dy));
         camera.update_keyboard(*current_input);
 
-        shader_program.useProgram();
         glViewport(0, 0, width, height);
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        sws::render(state, camera.get_view(), ratio, camera);
+        sws::render(state, ratio, camera);
 
         SwapBuffers(hdc);
         if (vsynch != 0) {
@@ -282,6 +309,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         current_input = &inputs[curr_input_idx];
         previous_input = &inputs[curr_input_idx == 0 ? 1 : 0];
         current_input->frame_clear(*previous_input);
+
+        auto now = std::chrono::high_resolution_clock::now();
+        state.dt = std::chrono::duration<f32>(now - end_last_frame).count();
+        state.t += state.dt;
+        end_last_frame = now;
     }
 
     glDeleteVertexArrays(1, &vao);
@@ -364,7 +396,6 @@ void win32_process_pending_messages(Input &new_input, Input &old_input, HWND hwn
                 {
                     int xPosRelative = raw->data.mouse.lLastX;
                     int yPosRelative = raw->data.mouse.lLastY;
-                    printf("%d %d\n", xPosRelative, yPosRelative);
                     new_input.mouse.dx = xPosRelative;
                     new_input.mouse.dy = yPosRelative;
                     // Process the mouse movements...
@@ -381,12 +412,6 @@ void win32_process_pending_messages(Input &new_input, Input &old_input, HWND hwn
                 break;
             case WM_LBUTTONUP: {
                 //new_input.left_mouse = false;
-            }
-                break;
-            case WM_MOUSEMOVE: {
-                printf("Mouse move\n");
-                mouse_x = GET_X_LPARAM(message.lParam);
-                mouse_y = GET_Y_LPARAM(message.lParam);
             }
                 break;
             case WM_SYSKEYDOWN:

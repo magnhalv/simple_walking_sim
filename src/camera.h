@@ -34,7 +34,7 @@ public:
     }
 
     void update_cursor(f32 dx, f32 dy) {
-        f32 sensitivity = 0.1f;
+        f32 sensitivity = 0.2f;
         yaw += dx*sensitivity;
         pitch -= dy*sensitivity;
 
@@ -54,7 +54,7 @@ public:
         //printf("Yaw %f pitch %f\n", yaw, pitch);
     }
 
-    glm::mat4 get_view() {
+    [[nodiscard]] auto get_view() const -> glm::mat4 {
         return glm::lookAt(position, position + direction, up);
     }
 
@@ -64,7 +64,7 @@ public:
 private:
     f32 yaw;
     f32 pitch;
-    glm::vec3 position{0.0f, 1.0f, -10.0f};
-    glm::vec3 direction{0.0f, 0.0f, 0.0f};
+    glm::vec3 position;
+    glm::vec3 direction;
     const glm::vec3 up{0, 1, 0};
 };

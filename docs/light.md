@@ -26,9 +26,9 @@ ccm = component-wise multiplication of colors
 **_m_gls_** is the shininess of the material. It controls the wideness the "hotspot". Smaller m_gls produces 
 as larger hotspot.
 
-**_m_spec_** controls the hotspot's intensity and color. Highly reflective materials will have a higher value.
+**_m_spec_** controls the hotspot's intensity and diffuse_color. Highly reflective materials will have a higher value.
 
-**_s_spec_** is basically the color of the light source.
+**_s_spec_** is basically the diffuse_color of the light source.
 
 Clamp c_spec to zero, in case cos theta is negative.
 
@@ -41,7 +41,7 @@ surface material. Thus, the location of the viewer is unimportant.
 c_diff = (s_diff ccm m_diff)(n dot l)
 ```
 
-**_s_diff_** is basically the color of the light source.
-**_m_diff_** is the color of the light and usually equal to s_spec.
+**_s_diff_** is basically the diffuse_color of the light source.
+**_m_diff_** is the diffuse_color of the light and usually equal to s_spec.
 
 The dot product should be clamped to zero, to avoid the object being lit from behind.

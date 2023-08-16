@@ -46,26 +46,29 @@ void printProgramInfoLog(GLuint handle)
     }
 }
 
-GLProgram::GLProgram(const GLShader& a)
-        : handle_(glCreateProgram())
+void GLProgram::initialize(const GLShader& a)
 {
+    assert(handle_ == 0);
+    handle_ = glCreateProgram();
     glAttachShader(handle_, a.getHandle());
     glLinkProgram(handle_);
     printProgramInfoLog(handle_);
 }
 
-GLProgram::GLProgram(const GLShader& a, const GLShader& b)
-        : handle_(glCreateProgram())
+void GLProgram::initialize(const GLShader& a, const GLShader& b)
 {
+    assert(handle_ == 0);
+    handle_ = glCreateProgram();
     glAttachShader(handle_, a.getHandle());
     glAttachShader(handle_, b.getHandle());
     glLinkProgram(handle_);
     printProgramInfoLog(handle_);
 }
 
-GLProgram::GLProgram(const GLShader& a, const GLShader& b, const GLShader& c)
-        : handle_(glCreateProgram())
+void GLProgram::initialize(const GLShader& a, const GLShader& b, const GLShader& c)
 {
+    assert(handle_ == 0);
+    handle_ = glCreateProgram();
     glAttachShader(handle_, a.getHandle());
     glAttachShader(handle_, b.getHandle());
     glAttachShader(handle_, c.getHandle());
@@ -73,9 +76,10 @@ GLProgram::GLProgram(const GLShader& a, const GLShader& b, const GLShader& c)
     printProgramInfoLog(handle_);
 }
 
-GLProgram::GLProgram(const GLShader& a, const GLShader& b, const GLShader& c, const GLShader& d, const GLShader& e)
-        : handle_(glCreateProgram())
+void GLProgram::initialize(const GLShader& a, const GLShader& b, const GLShader& c, const GLShader& d, const GLShader& e)
 {
+    assert(handle_ == 0);
+    handle_ = glCreateProgram();
     glAttachShader(handle_, a.getHandle());
     glAttachShader(handle_, b.getHandle());
     glAttachShader(handle_, c.getHandle());
@@ -85,6 +89,11 @@ GLProgram::GLProgram(const GLShader& a, const GLShader& b, const GLShader& c, co
     printProgramInfoLog(handle_);
 }
 
+void GLProgram::set_uniform(const char *name, const glm::vec4 &vec) const {
+    i32 id = glGetUniformLocation(handle_, name);
+    glUniform4f(id, vec.x, vec.y, vec.z, vec.w);
+}
+
 GLProgram::~GLProgram()
 {
     glDeleteProgram(handle_);
@@ -92,6 +101,7 @@ GLProgram::~GLProgram()
 
 void GLProgram::useProgram() const
 {
+    assert(handle_ != 0);
     glUseProgram(handle_);
 }
 
@@ -128,5 +138,6 @@ GLBuffer::GLBuffer(GLsizeiptr size, const void* data, GLbitfield flags)
 
 GLBuffer::~GLBuffer()
 {
+    assert(handle_ != 0);
     glDeleteBuffers(1, &handle_);
 }
