@@ -21,12 +21,12 @@
     "materials" : [
         {
             "doubleSided" : true,
-            "name" : "Wood",
+            "name" : "wood",
             "pbrMetallicRoughness" : {
                 "baseColorFactor" : [
-                    0.040434133261442184,
-                    0.018980957567691803,
-                    0.005377334542572498,
+                    0.028813999146223068,
+                    0.013952316716313362,
+                    0.004143509082496166,
                     1
                 ],
                 "metallicFactor" : 0,
@@ -35,12 +35,12 @@
         },
         {
             "doubleSided" : true,
-            "name" : "Metal",
+            "name" : "metal",
             "pbrMetallicRoughness" : {
                 "baseColorFactor" : [
-                    0.002428171457722783,
-                    0.002225550590083003,
-                    0.0023114406503736973,
+                    0,
+                    0,
+                    0,
                     1
                 ],
                 "metallicFactor" : 0,

@@ -4,23 +4,23 @@
 #include "renderer.h"
 #include "GLFW/glfw3.h"
 
+void allocate_uniform_buffer(u32 *id, u32 buffer_base, GLsizeiptr size) {
+    glCreateBuffers(1, id);
+    glNamedBufferStorage(*id, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
+    glBindBufferBase(GL_UNIFORM_BUFFER, buffer_base, *id);
+}
+
 void sws::initialize(sws::RenderState &state) {
     GLShader vertex_shader("./shaders/mesh.vert");
     GLShader frag_shader("./shaders/phong.frag");
     state.shader_program.initialize(vertex_shader, frag_shader);
     state.shader_program.useProgram();
 
-    const GLsizeiptr kBufferSize = sizeof( sws::PerFrameData );
-    glCreateBuffers( 1, &state.per_frame_bid );
-    glNamedBufferStorage( state.per_frame_bid, kBufferSize, nullptr, GL_DYNAMIC_STORAGE_BIT );
-    glBindBufferBase( GL_UNIFORM_BUFFER, 0, state.per_frame_bid);
+    allocate_uniform_buffer(&state.per_frame_bid, 0, sizeof(sws::PerFrameData));
+    allocate_uniform_buffer(&state.light_bid, 1, sizeof(sws::LightData));
+    allocate_uniform_buffer(&state.material_bid, 2, sizeof(sws::Material));
 
-    const GLsizeiptr light_buffer_size = sizeof( sws::LightData );
-    glCreateBuffers( 1, &state.light_uniform );
-    glNamedBufferStorage( state.light_uniform, light_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT );
-    glBindBufferBase( GL_UNIFORM_BUFFER, 1, state.light_uniform);
-    printf("%d %d\n", state.per_frame_bid, state.light_uniform);
-    for (auto &mesh : state.meshes ) {
+    for (auto &mesh: state.meshes) {
         glCreateVertexArrays(1, &mesh.vao);
 
         glCreateBuffers(1, &mesh.position_vbo);
@@ -51,29 +51,35 @@ void sws::initialize(sws::RenderState &state) {
 
     state.t = 0;
 }
+
 void sws::render(const sws::RenderState &state, const f32 ratio, const Camera &camera) {
     state.shader_program.useProgram();
-    const GLsizeiptr kBufferSize = sizeof( sws::PerFrameData );
-    const GLsizeiptr light_buffer_size = sizeof( sws::LightData );
+    const GLsizeiptr kBufferSize = sizeof(sws::PerFrameData);
+    const GLsizeiptr light_buffer_size = sizeof(sws::LightData);
     for (const auto &node: state.nodes) {
         const auto &mesh = state.meshes[node.mesh_idx];
         const auto &material = state.materials[node.material_idx];
         glBindVertexArray(mesh.vao);
 
         const glm::mat4 m = camera.get_view();
-        const glm::mat4 p = glm::perspective( 45.0f, ratio, 0.1f, 1000.0f );
-        state.shader_program.set_uniform("mat_diffuse", material.diffuse_color);
-        state.shader_program.set_uniform("mat_spec", material.diffuse_color);
-        sws::PerFrameData perFrameData = { .mvp = p * m };
-        glNamedBufferSubData( state.per_frame_bid, 0, kBufferSize, &perFrameData );
+        const glm::mat4 p = glm::perspective(45.0f, ratio, 0.1f, 1000.0f);
 
-        auto change = state.t*2;
-        sws::LightData light_data = { .omni_pos = glm::vec4(sin(change) * 5, 2.0f, cos(change)*5, 1/100.0f), .eye_pos = glm::vec4(camera.get_position(), 0.0f) };
-        glNamedBufferSubData( state.light_uniform, 0, light_buffer_size, &light_data );
+        sws::PerFrameData perFrameData = {.mvp = p * m};
+        glNamedBufferSubData(state.per_frame_bid, 0, kBufferSize, &perFrameData);
+
+        auto change = state.t * 0;
+        auto change_y = state.t * 0;
+        sws::LightData light_data = {
+                .omni_pos = glm::vec4(sin(change) * 5, sin(change_y), cos(change) * 5, 1 / 100000.0f),
+                .omni_color = glm::vec4(1.0, 1.0, 1.0, 0),
+                .eye_pos = glm::vec4(camera.get_position(), 0.0f)};
+        glNamedBufferSubData(state.light_bid, 0, light_buffer_size, &light_data);
+
+        glNamedBufferSubData(state.material_bid, 0, sizeof(sws::Material), &material);
 
         glFinish();
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        glDrawArrays( GL_TRIANGLES, 0, mesh.positions.size() );
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDrawArrays(GL_TRIANGLES, 0, mesh.positions.size());
 
         //perFrameData.isWireframe = true;
         //glNamedBufferSubData( state.per_frame_bid, 0, kBufferSize, &perFrameData );
@@ -85,7 +91,7 @@ void sws::render(const sws::RenderState &state, const f32 ratio, const Camera &c
 }
 
 void free(std::vector<sws::Mesh> &meshes) {
-    for (auto &mesh : meshes ) {
+    for (auto &mesh: meshes) {
         glDeleteBuffers(1, &mesh.position_vbo);
     }
 }

@@ -19,6 +19,7 @@
 #include "assimp_util.h"
 #include "camera.h"
 #include "input.h"
+#include "material.h"
 
 #include <windows.h>
 #include <errhandlingapi.h>
@@ -171,7 +172,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    const aiScene *scene = aiImportFile("barrel.obj", aiProcess_Triangulate);
+    const aiScene *scene = aiImportFile("barrel.gltf", aiProcess_Triangulate);
 
     if (scene == nullptr || !scene->HasMeshes()) {
         printf("Unable to load basic_scene.glb\n");
@@ -203,20 +204,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
     for (i32 i = 0; i < scene->mNumMaterials; i++) {
         aiMaterial* ai_material = scene->mMaterials[i];
-        aiColor3D diffuse_color (0.f, 0.f, 0.f);
-        ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color);
-        aiColor3D specular_color (0.f, 0.f, 0.f);
-        ai_material->Get(AI_MATKEY_COLOR_SPECULAR, specular_color);
         aiString name;
         ai_material->Get(AI_MATKEY_NAME, name);
-
-        printf("%s\n", name.data);
-        printf("%f %f %f\n", diffuse_color.r, diffuse_color.g, diffuse_color.b);
-
-        auto &material = state.materials.emplace_back();
-        strncpy(material.name, name.data, sws::MAX_LENGTH);
-        material.diffuse_color = glm::vec4(pow(diffuse_color.r, 1 / 2.2), pow(diffuse_color.g, 1 / 2.2), pow(diffuse_color.b, 1 / 2.2), 1.0);
-
+        state.materials.emplace_back(sws::get_material(name.data));
     }
 
     printf("  Meshes loaded: %d\n", state.meshes.size());

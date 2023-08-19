@@ -9,6 +9,7 @@
 #include "types.h"
 #include "camera.h"
 #include "gl_shader.h"
+#include "material.h"
 
 namespace sws {
 
@@ -22,6 +23,7 @@ namespace sws {
     struct LightData
     {
         glm::vec4 omni_pos;
+        glm::vec4 omni_color;
         glm::vec4 eye_pos;
     };
 
@@ -33,13 +35,6 @@ namespace sws {
         std::vector<glm::vec3> normals;
     };
 
-    struct Material {
-        char name[MAX_LENGTH];
-        glm::vec4 diffuse_color;
-        glm::vec4 specular_color;
-        float specular_exponent;
-    };
-
     struct Node {
         u32 mesh_idx;
         u32 material_idx;
@@ -48,7 +43,8 @@ namespace sws {
 
     struct RenderState {
         GLuint per_frame_bid;
-        GLuint light_uniform;
+        GLuint light_bid;
+        GLuint material_bid;
         std::vector<Mesh> meshes;
         std::vector<Material> materials;
         std::vector<Node> nodes;

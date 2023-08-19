@@ -2,11 +2,17 @@
 layout(std140, binding = 1) uniform LightData
 {
     vec4 omni_pos_vec4;
+    vec4 omni_color;
     vec4 eye_pos_vec4;
 };
-
-uniform vec4 mat_diffuse;
-uniform vec4 mat_spec;
+layout(std140, binding = 2) uniform Material
+{
+    vec4 mat_diffuse;
+    vec4 mat_specular;
+    vec4 mat_emission;
+    vec4 mat_ambient;
+    float mat_spec_exponent;
+};
 
 in vec3 position;
 in vec3 norm;
@@ -21,9 +27,6 @@ void main()
     vec3 eye_pos = eye_pos_vec4.xyz;
     vec3 n = normalize(norm);
 
-    vec3 v = normalize(eye_pos - position);
-
-    float specular_exponent = 100;
     vec3 mat_emis = vec3(0.0, 0.0, 0.0);
     vec3 omni_color = vec3(1.0, 1.0, 1.0);
     float global_ambient = 0.4;
@@ -37,10 +40,12 @@ void main()
 
     float diff_factor = max(dot(n, l), 0);
 
+    vec3 v = normalize(eye_pos - position);
     vec3 h = normalize(v + l);
-    float spec_factor = max(pow(max(dot(n, h), 0.0), specular_exponent), 0.0);
+    float spec_factor = max(pow(max(dot(n, h), 0.0), mat_spec_exponent), 0.0);
 
-    vec3 c_spec = (light_color * mat_spec.xyz) * spec_factor;
+
+    vec3 c_spec = (light_color * mat_specular.xyz) * spec_factor;
     vec3 c_diff = (light_color * mat_diffuse.xyz) * diff_factor;
     vec3 c_amb = global_ambient * mat_diffuse.xyz;
     vec3 c_emis = mat_emis;
