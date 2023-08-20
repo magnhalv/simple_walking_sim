@@ -119,6 +119,7 @@ add_executable(SimpleWalkingSim ${CMAKE_SOURCE_DIR}/src/main.cpp
 		${CMAKE_SOURCE_DIR}/src/utils.cpp
 		${CMAKE_SOURCE_DIR}/src/gl_shader.cpp
 		${CMAKE_SOURCE_DIR}/src/renderer.cpp
+		${CMAKE_SOURCE_DIR}/src/asset_import.cpp
 		${GLAD_SOURCES}
 		)
 

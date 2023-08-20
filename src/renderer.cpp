@@ -20,7 +20,7 @@ void sws::initialize(sws::RenderState &state) {
     allocate_uniform_buffer(&state.light_bid, 1, sizeof(sws::LightData));
     allocate_uniform_buffer(&state.material_bid, 2, sizeof(sws::Material));
 
-    for (auto &mesh: state.meshes) {
+    for (auto &mesh: state.assets.meshes) {
         glCreateVertexArrays(1, &mesh.vao);
 
         glCreateBuffers(1, &mesh.position_vbo);
@@ -56,30 +56,33 @@ void sws::render(const sws::RenderState &state, const f32 ratio, const Camera &c
     state.shader_program.useProgram();
     const GLsizeiptr kBufferSize = sizeof(sws::PerFrameData);
     const GLsizeiptr light_buffer_size = sizeof(sws::LightData);
-    for (const auto &node: state.nodes) {
-        const auto &mesh = state.meshes[node.mesh_idx];
-        const auto &material = state.materials[node.material_idx];
-        glBindVertexArray(mesh.vao);
+    auto &assets = state.assets;
 
-        const glm::mat4 m = camera.get_view();
-        const glm::mat4 p = glm::perspective(45.0f, ratio, 0.1f, 1000.0f);
+    auto change = state.t;
+    auto change_y = state.t * 0;
+    sws::LightData light_data = {
+            .omni_pos = glm::vec4(sin(change) * 3.0, 0.5, 1.0, 1 / 3.0f),
+            .omni_color = glm::vec4(1.0, 1.0, 1.0, 0),
+            .eye_pos = glm::vec4(camera.get_position(), 0.0f)};
+    glNamedBufferSubData(state.light_bid, 0, light_buffer_size, &light_data);
 
-        sws::PerFrameData perFrameData = {.mvp = p * m};
-        glNamedBufferSubData(state.per_frame_bid, 0, kBufferSize, &perFrameData);
+    for (const auto &node: assets.nodes) {
+        for (auto i = 0; i < node.mesh_indices.size(); i++) {
+            const auto &mesh = assets.meshes[node.mesh_indices[i]];
+            const auto &material = assets.materials[node.material_indices[i]];
+            glBindVertexArray(mesh.vao);
 
-        auto change = state.t * 0;
-        auto change_y = state.t * 0;
-        sws::LightData light_data = {
-                .omni_pos = glm::vec4(sin(change) * 5, sin(change_y), cos(change) * 5, 1 / 100000.0f),
-                .omni_color = glm::vec4(1.0, 1.0, 1.0, 0),
-                .eye_pos = glm::vec4(camera.get_position(), 0.0f)};
-        glNamedBufferSubData(state.light_bid, 0, light_buffer_size, &light_data);
+            const glm::mat4 m = camera.get_view() * node.transform;
+            const glm::mat4 p = glm::perspective(45.0f, ratio, 0.1f, 1000.0f);
+            sws::PerFrameData perFrameData = {.mvp = p * m};
+            glNamedBufferSubData(state.per_frame_bid, 0, kBufferSize, &perFrameData);
 
-        glNamedBufferSubData(state.material_bid, 0, sizeof(sws::Material), &material);
+            glNamedBufferSubData(state.material_bid, 0, sizeof(sws::Material), &material);
 
-        glFinish();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glDrawArrays(GL_TRIANGLES, 0, mesh.positions.size());
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glDrawArrays(GL_TRIANGLES, 0, mesh.positions.size());
+        }
+
 
         //perFrameData.isWireframe = true;
         //glNamedBufferSubData( state.per_frame_bid, 0, kBufferSize, &perFrameData );

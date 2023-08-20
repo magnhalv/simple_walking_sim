@@ -9,17 +9,13 @@
 #include <glad/wgl.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <assimp/cimport.h>
 
 #include "types.h"
 #include "gl_shader.h"
 #include "renderer.h"
-#include "assimp_util.h"
 #include "camera.h"
 #include "input.h"
-#include "material.h"
+#include "asset_import.h"
 
 #include <windows.h>
 #include <errhandlingapi.h>
@@ -32,7 +28,7 @@ typedef BOOL(WINAPI *PFNWGLSWAPINTERVALEXTPROC)(int);
 typedef int(WINAPI *PFNWGLGETSWAPINTERVALEXTPROC)(void);
 
 
-Camera camera{-90.0f, 0.0f, glm::vec3(0.0f, 1.0f, 10.0f)};
+Camera camera{-90.0f, 0.0f, glm::vec3(0.0f, 1.0f, 4.0f)};
 
 bool is_running = true;
 
@@ -172,78 +168,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    const aiScene *scene = aiImportFile("barrel.gltf", aiProcess_Triangulate);
 
-    if (scene == nullptr || !scene->HasMeshes()) {
-        printf("Unable to load basic_scene.glb\n");
-        exit(255);
-    } else {
-        printf("Scene loaded.\n");
-    }
 
     // TODO: Move this to importer class
     sws::RenderState state;
-    for (i32 m = 0; m < scene->mNumMeshes; m++) {
-        sws::Mesh &mesh = state.meshes.emplace_back();
-        const auto &ai_mesh = scene->mMeshes[m];
-
-        for (u32 f = 0; f < ai_mesh->mNumFaces; f++) {
-            const auto &ai_face = ai_mesh->mFaces[f];
-            assert(ai_face.mNumIndices == 3);
-            const u32 indices[3] = {ai_face.mIndices[0], ai_face.mIndices[1], ai_face.mIndices[2]};
-            for (const auto idx: indices) {
-                assert(idx < ai_mesh->mNumVertices);
-                const auto &ai_vec = ai_mesh->mVertices[idx];
-                mesh.positions.emplace_back(ai_vec.x, ai_vec.y, ai_vec.z);
-
-                const auto &ai_norm = ai_mesh->mNormals[idx];
-                mesh.normals.emplace_back(ai_norm.x, ai_norm.y, ai_norm.z);
-            }
-        }
-    }
-
-    for (i32 i = 0; i < scene->mNumMaterials; i++) {
-        aiMaterial* ai_material = scene->mMaterials[i];
-        aiString name;
-        ai_material->Get(AI_MATKEY_NAME, name);
-        state.materials.emplace_back(sws::get_material(name.data));
-    }
-
-    printf("  Meshes loaded: %d\n", state.meshes.size());
-
-    // TODO: Make a proper scene graph
-    const auto root = scene->mRootNode;
-    if (root->mNumMeshes > 0) {
-        for (auto i = 0; i < root->mNumMeshes; i++) {
-            auto &node = state.nodes.emplace_back();
-            node.transform = ConvertMatrixToGLMFormat(root->mTransformation);
-            node.mesh_idx = root->mMeshes[i];
-            node.material_idx = scene->mMeshes[node.mesh_idx]->mMaterialIndex;
-        }
-
-    }
-    for (i32 c = 0; c < root->mNumChildren; c++) {
-        const auto &child = root->mChildren[c];
-
-        if (child->mNumMeshes == 0) {
-            continue;
-        }
-
-        if (child->mNumChildren > 0) {
-            printf("Child with children: %s", child->mName.data);
-        }
-
-        auto &node = state.nodes.emplace_back();
-        node.transform = ConvertMatrixToGLMFormat(child->mTransformation);
-        node.mesh_idx = child->mMeshes[0];
-    }
-    // END TODO
-
-    //assert(state.nodes.size() == state.meshes.size());
-    //assert(state.nodes.size() == 3);
-
-    printf("Converted from assimp to local representation.\n");
-    aiReleaseImport(scene);
+    sws::import_mesh("barrel.glb", state.assets);
 
     sws::initialize(state);
 
@@ -279,7 +208,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         camera.update_keyboard(*current_input);
 
         glViewport(0, 0, width, height);
-        glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
         sws::render(state, ratio, camera);

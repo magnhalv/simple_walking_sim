@@ -13,23 +13,24 @@ public:
 
     void update_keyboard(Input &input) {
         glm::vec2 dir = glm::normalize(glm::vec2(direction.x, direction.z));
+        const f32 speed = 0.025f;
         if (input.move_up.ended_down) {
-            position.x += dir.x * 0.1f;
-            position.z += dir.y * 0.1f;
+            position.x += dir.x * speed;
+            position.z += dir.y * speed;
         }
         if (input.move_down.ended_down) {
-            position.x -= dir.x * 0.1f;
-            position.z -= dir.y * 0.1f;
+            position.x -= dir.x * speed;
+            position.z -= dir.y * speed;
         }
         glm::vec3 cross = glm::cross(direction, up);
         glm::vec2 side_dir = glm::normalize(glm::vec2(cross.x, cross.z));
         if (input.move_left.ended_down) {
-            position.x -= side_dir.x * 0.1f;
-            position.z -= side_dir.y * 0.1f;
+            position.x -= side_dir.x * speed;
+            position.z -= side_dir.y * speed;
         }
         if (input.move_right.ended_down) {
-            position.x += side_dir.x * 0.1f;
-            position.z += side_dir.y * 0.1f;
+            position.x += side_dir.x * speed;
+            position.z += side_dir.y * speed;
         }
     }
 

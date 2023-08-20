@@ -47,7 +47,7 @@ void main()
 
     vec3 c_spec = (light_color * mat_specular.xyz) * spec_factor;
     vec3 c_diff = (light_color * mat_diffuse.xyz) * diff_factor;
-    vec3 c_amb = global_ambient * mat_diffuse.xyz;
+    vec3 c_amb = mat_ambient.xyz;
     vec3 c_emis = mat_emis;
 
     out_FragColor = vec4(c_spec + c_diff + c_amb + c_emis, 1.0);
